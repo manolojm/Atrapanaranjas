@@ -10,7 +10,9 @@ public class DamageSalto : MonoBehaviour
 
     public GameObject destroyParticle;
     public float jumpforce = 2.5f;
-    public int vidas = 3;
+    public int vidas = 1;
+
+    public AudioSource audioSalto;
 
     private void OnCollisionEnter2D(Collision2D collision) {
         if (collision.transform.CompareTag("Player")) {
@@ -21,6 +23,8 @@ public class DamageSalto : MonoBehaviour
     }
 
     public void PerderVida() {
+        //audioSalto.Play();
+        Instantiate(audioSalto);
         vidas--;
         animator.Play("Hit");
     }

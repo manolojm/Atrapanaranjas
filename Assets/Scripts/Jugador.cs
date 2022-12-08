@@ -8,12 +8,13 @@ using UnityEngine.SceneManagement;
 public class Jugador : MonoBehaviour{
 
     // Variables
-    public int velocidad = 2;
-    private int fuerzaSalto = 6;
-    public int fuerzaSaltoDoble = 3;
+    public int velocidad;
+    private float fuerzaSalto;
+    private float fuerzaSaltoDoble;
 
-    bool isJumping = false;
-    bool saltarDeNuevo = false;
+    bool isJumping;
+    bool saltarDeNuevo;
+    bool tieneDobleSalto;
 
     private Rigidbody2D jugador;
     private SpriteRenderer sprite;
@@ -32,6 +33,7 @@ public class Jugador : MonoBehaviour{
     private ControlHud hud;
 
     public PlayableDirector director;
+    private ControlDatosJuego datosJuego;
 
     // Start is called before the first frame update
     void Start()
@@ -41,15 +43,22 @@ public class Jugador : MonoBehaviour{
         animator = GetComponent<Animator>();
 
         velocidad = 6;
-        fuerzaSalto = 8;
+        fuerzaSalto = 7.5f;
+        fuerzaSaltoDoble = 4;
 
+        isJumping = false;
+        saltarDeNuevo = false;
+        tieneDobleSalto = false;
         vulnerable = true;
+
         tiempoInicio = Time.time;
         puntuacion = 0;
 
         hud = canvas.GetComponent<ControlHud>();
         hud.SetPowerUps(numeroPowerUps);
         hud.SetVidas(vidas);
+
+        datosJuego = GameObject.Find("DatosJuego").GetComponent<ControlDatosJuego>();
     }
 
     // Update is called once per frame
@@ -57,13 +66,18 @@ public class Jugador : MonoBehaviour{
     {
         // Salto
         if (Input.GetKeyDown("space")) {
+
             if (!isJumping) {
+
                 saltarDeNuevo = true;
                 jugador.AddForce(Vector2.up * fuerzaSalto, ForceMode2D.Impulse);
                 isJumping = true;
+
             } else {
+
                 if (Input.GetKeyDown("space")) {
-                    if (saltarDeNuevo) {
+                    if (saltarDeNuevo && tieneDobleSalto) {
+
                         animator.SetBool("DoubleJump", true);
                         jugador.AddForce(Vector2.up * fuerzaSaltoDoble, ForceMode2D.Impulse);
                         isJumping = true;
@@ -104,7 +118,15 @@ public class Jugador : MonoBehaviour{
     public void IncrementarPuntuacion(int puntos) {
         puntuacion += puntos;
         hud.SetPowerUps(puntuacion);
-        //datosJuego.Puntuacion = datosJuego.Puntuacion + 5;
+        datosJuego.Puntuacion = datosJuego.Puntuacion + puntos;
+    }
+
+    public void IncrementarTiempo(int tiempo) {
+        datosJuego.TiempoEmpleado = datosJuego.TiempoEmpleado + tiempo;
+    }
+
+    public void ActivarDobleSalto() {
+        tieneDobleSalto = true;
     }
 
     private void FixedUpdate() {
@@ -129,9 +151,6 @@ public class Jugador : MonoBehaviour{
                 animator.SetBool("Run", false);
             }
         }
-
-       
-
     }
 
     private void OnCollisionEnter2D(Collision2D other) {
@@ -153,7 +172,7 @@ public class Jugador : MonoBehaviour{
         if (vulnerable) {
             vulnerable = false;
             if (vidas == 1) {
-                //Perdido();
+                GetComponent<PlayerRespawn>().PlayerDamaged();
             }
             vidas--;
             hud.SetVidas(vidas);
